@@ -10,6 +10,8 @@
     "@types/node": "^12.19.6",
     "@types/react": "^16.14.1",
     "@types/react-dom": "^16.9.10",
+    "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
     "bootstrap": "^4.5.3",
     "react": "^17.0.1",
     "react-bootstrap": "^1.4.0",
