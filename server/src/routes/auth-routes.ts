@@ -1,38 +1,43 @@
 import { Router, Request, Response, Express } from "express";
-import bcrypt from 'bcrypt';
-import moment from 'moment';
+import bcrypt from "bcrypt";
+import moment from "moment";
 
 import { UserRequest } from "./APIs";
 import { HTTP_STATUS } from "../constants";
-import { User } from "../entities/User";
+import User from "../entities/User";
+import DBManager from "../database/DatabaseManager";
+import { Repository } from "typeorm";
 
 export const AuthRouter = (app: Express): Router => {
   const router: Router = Router();
-  const userRepository = app.get("DBManager").getUserRepository();
+  const userRepository: Repository<User> = app.get("userRepository");
 
-  router.get("/login", (req: UserRequest, res: Response) => {
+  router.post("/login", (req: UserRequest, res: Response) => {});
 
-  });
-
-  router.post("signup", async (req: UserRequest, res: Response) => {
+  router.post("/signup", async (req: UserRequest, res: Response) => {
     const email = req.body.email;
-    const existUser = userRepository.findByEmail(email);
+    const existingUser = await userRepository.findOne({ email: email });
 
-    if (existUser) {
-      return res.status(HTTP_STATUS.BAD_REQUEST).send();
+    if (existingUser) {
+      return res.status(HTTP_STATUS.CONFLIT).send({ error: "This email is already registered" });
     }
 
-    const salt = await bcrypt.getSalt();
+    const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     const newUser: User = new User();
     newUser.email = email;
     newUser.password = hashedPassword;
     newUser.salt = salt;
-    newUser.updatedAt = new Date(moment.now());
-    
-    userRepository.save(newUser);
-  })
+
+    try {
+      await userRepository.save(newUser);
+    } catch (e) {
+      console.error(e);
+      return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ error: e.message });
+    }
+    return res.status(HTTP_STATUS.CREATED).send();
+  });
 
   return router;
 };

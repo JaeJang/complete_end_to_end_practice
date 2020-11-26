@@ -8,20 +8,19 @@ class DBManager {
 
   constructor() {
     this.init();
-    this.DB_NAME = process.env.DB_DATABASE;
   }
 
   async init() {
     this.connectionManager.create(DB_CONFIG);
-
-    await this.connectionManager.get(this.DB_NAME).connect();
+    
+    await this.connectionManager.get().connect();
     
   }
 
   getUserRepository() {
-    return this.connectionManager.get(this.DB_NAME).getRepository(User);
+    return this.connectionManager.get().getRepository(User);
   }
 
 }
 
-export default DBManager;
+export default new DBManager;
